@@ -11,6 +11,8 @@ if 'time_input_display' not in st.session_state:
     st.session_state.time_input_display = ""
 if 'ratios_input_display' not in st.session_state:
     st.session_state.ratios_input_display = "50,30,20"
+if 'auto_calculate' not in st.session_state:
+    st.session_state.auto_calculate = False
 
 # 全角数字を半角数字に変換
 def to_halfwidth(text):
@@ -29,6 +31,11 @@ def on_time_input_change():
         # 4桁まで制限
         converted = converted[:4]
         st.session_state.time_input_display = converted
+        
+        # 4桁入力完了時に自動計算
+        if len(converted) == 4:
+            st.session_state.auto_calculate = True
+        
         st.rerun()
 
 def on_ratios_input_change():
@@ -83,7 +90,9 @@ def to_hhmm(minutes: float) -> str:
     return f"{h:02d}:{m:02d}"
 
 
-if st.button("計算する"):
+# 計算処理を関数化
+def calculate_results():
+    """計算処理を実行"""
     if total_time > 0 and len(ratios_list) > 0:
         total_ratio = sum(ratios_list)
         results = []
@@ -99,9 +108,19 @@ if st.button("計算する"):
         st.session_state.results = results
         st.session_state.time_only_results = time_only_results
         st.session_state.ratios_list = ratios_list
-            
+        return True
     else:
         st.warning("勤務時間と割合を正しく入力してください。")
+        return False
+
+# 自動計算の実行
+if st.session_state.auto_calculate:
+    calculate_results()
+    st.session_state.auto_calculate = False  # フラグをリセット
+
+# 手動計算ボタン
+if st.button("計算する"):
+    calculate_results()
 
 # 結果表示（セッション状態から）
 if st.session_state.results:
