@@ -20,44 +20,32 @@ def to_halfwidth(text):
     full_to_half = str.maketrans('０１２３４５６７８９', '0123456789')
     return text.translate(full_to_half)
 
-# 入力変更時のコールバック関数
-def on_time_input_change():
-    """勤務時間入力変更時の処理"""
-    if 'time_input' in st.session_state:
-        # 全角数字を半角に変換
-        converted = to_halfwidth(st.session_state.time_input)
-        # 数字以外の文字を除去
-        converted = ''.join(c for c in converted if c.isdigit())
-        # 4桁まで制限
-        converted = converted[:4]
-        st.session_state.time_input_display = converted
-        
-        # 4桁入力完了時に自動計算
-        if len(converted) == 4:
-            st.session_state.auto_calculate = True
-        
-        st.rerun()
-
-def on_ratios_input_change():
-    """割合入力変更時の処理"""
-    if 'ratios_input' in st.session_state:
-        # 全角数字とカンマを半角に変換
-        converted = to_halfwidth(st.session_state.ratios_input)
-        # 数字、カンマ、小数点以外の文字を除去
-        converted = ''.join(c for c in converted if c.isdigit() or c == ',' or c == '.')
-        st.session_state.ratios_input_display = converted
-        st.rerun()
 
 # 勤務時間入力（4桁の数字で入力）
 time_input = st.text_input(
     "勤務時間 (4桁で入力: 例 0123 = 1時間23分)", 
-    value=st.session_state.time_input_display,
     placeholder="0123",
     max_chars=4,
     help="半角数字のみ入力可能",
-    key="time_input",
-    on_change=on_time_input_change
+    key="time_input"
 )
+
+# 入力値をリアルタイムで変換
+if 'time_input' in st.session_state:
+    # 全角数字を半角に変換
+    converted = to_halfwidth(st.session_state.time_input)
+    # 数字以外の文字を除去
+    converted = ''.join(c for c in converted if c.isdigit())
+    # 4桁まで制限
+    converted = converted[:4]
+    
+    # 変換された値が異なる場合は更新
+    if converted != st.session_state.time_input_display:
+        st.session_state.time_input_display = converted
+        # 4桁入力完了時に自動計算
+        if len(converted) == 4:
+            st.session_state.auto_calculate = True
+        st.rerun()
 
 # 4桁の数字を時間と分に変換
 def parse_time_input(input_str):
@@ -75,11 +63,21 @@ total_time = parse_time_input(st.session_state.time_input_display)
 # 割合入力
 ratios = st.text_area(
     "割合をカンマ区切りで入力（例: 50,30,20）", 
-    value=st.session_state.ratios_input_display,
     help="半角数字とカンマのみ入力可能",
-    key="ratios_input",
-    on_change=on_ratios_input_change
+    key="ratios_input"
 )
+
+# 割合入力をリアルタイムで変換
+if 'ratios_input' in st.session_state:
+    # 全角数字とカンマを半角に変換
+    converted = to_halfwidth(st.session_state.ratios_input)
+    # 数字、カンマ、小数点以外の文字を除去
+    converted = ''.join(c for c in converted if c.isdigit() or c == ',' or c == '.')
+    
+    # 変換された値が異なる場合は更新
+    if converted != st.session_state.ratios_input_display:
+        st.session_state.ratios_input_display = converted
+        st.rerun()
 
 # 割合入力を半角に変換して処理
 ratios_list = [float(r.strip()) for r in st.session_state.ratios_input_display.split(",") if r.strip().replace(".", "").isdigit()]
