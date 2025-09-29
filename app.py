@@ -71,9 +71,13 @@ def on_ratios_input_change():
         # 数字、カンマ、小数点以外の文字を除去
         converted = ''.join(c for c in converted if c.isdigit() or c == ',' or c == '.')
         st.session_state.ratios_input_display = converted
+        
+        # 入力完了時に自動計算（カンマが含まれている場合）
+        if ',' in converted and len(converted) > 0:
+            st.session_state.auto_calculate = True
 
 # 割合入力
-ratios = st.text_area(
+ratios = st.text_input(
     "割合をカンマ区切りで入力（例: 50,30,20）", 
     value=st.session_state.ratios_input_display,
     help="半角数字とカンマのみ入力可能",
