@@ -33,8 +33,6 @@ if 'results' not in st.session_state:
     st.session_state.results = []
 if 'time_only_results' not in st.session_state:
     st.session_state.time_only_results = []
-if 'copied_items' not in st.session_state:
-    st.session_state.copied_items = set()
 
 if st.button("計算する"):
     if total_time > 0 and len(ratios_list) > 0:
@@ -52,8 +50,6 @@ if st.button("計算する"):
         st.session_state.results = results
         st.session_state.time_only_results = time_only_results
         st.session_state.ratios_list = ratios_list
-        # コピー状態をリセット
-        st.session_state.copied_items = set()
             
     else:
         st.warning("勤務時間と割合を正しく入力してください。")
@@ -66,35 +62,13 @@ if st.session_state.results:
     for idx, (result, time_only) in enumerate(zip(st.session_state.results, st.session_state.time_only_results), start=1):
         st.write(f"**作業{idx}**: 割合 {st.session_state.ratios_list[idx-1]} → {time_only}")
         
-        # コピー状態をチェック
-        is_copied = f"task_{idx}" in st.session_state.copied_items
-        
-        if is_copied:
-            st.button(f"✓ コピー済み", key=f"copy_{idx}", disabled=True)
-        else:
-            if st.button(f"コピー", key=f"copy_{idx}"):
-                # コピー状態を更新
-                st.session_state.copied_items.add(f"task_{idx}")
-                st.rerun()
-        
         # コピー用テキストを表示（選択可能）
         st.code(time_only, language="text")
     
     # 全時間をコピー
     all_times = "\n".join(st.session_state.time_only_results)
     
-    # 全時間コピー状態をチェック
-    all_copied = "all_times" in st.session_state.copied_items
-    
-    if all_copied:
-        st.button("✓ 全時間コピー済み", disabled=True)
-    else:
-        if st.button("全時間をコピー"):
-            # 全時間コピー状態を更新
-            st.session_state.copied_items.add("all_times")
-            st.rerun()
-    
     # コピー用のテキストを表示（選択可能）
     if st.session_state.time_only_results:
-        st.markdown("**コピー用テキスト（選択してコピーしてください）:**")
+        st.markdown("**全時間（選択してコピーしてください）:**")
         st.code(all_times, language="text")
