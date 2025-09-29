@@ -64,20 +64,21 @@ if st.session_state.results:
     
     # 作業ごとに分けて表示
     for idx, (result, time_only) in enumerate(zip(st.session_state.results, st.session_state.time_only_results), start=1):
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.write(f"**作業{idx}**: 割合 {st.session_state.ratios_list[idx-1]} → {time_only}")
-        with col2:
-            # コピー状態をチェック
-            is_copied = f"task_{idx}" in st.session_state.copied_items
-            
-            if is_copied:
-                st.button(f"✓ コピー済み", key=f"copy_{idx}", disabled=True)
-            else:
-                if st.button(f"コピー", key=f"copy_{idx}"):
-                    # コピー状態を更新
-                    st.session_state.copied_items.add(f"task_{idx}")
-                    st.rerun()
+        st.write(f"**作業{idx}**: 割合 {st.session_state.ratios_list[idx-1]} → {time_only}")
+        
+        # コピー状態をチェック
+        is_copied = f"task_{idx}" in st.session_state.copied_items
+        
+        if is_copied:
+            st.button(f"✓ コピー済み", key=f"copy_{idx}", disabled=True)
+        else:
+            if st.button(f"コピー", key=f"copy_{idx}"):
+                # コピー状態を更新
+                st.session_state.copied_items.add(f"task_{idx}")
+                st.rerun()
+        
+        # コピー用テキストを表示（選択可能）
+        st.code(time_only, language="text")
     
     # 全時間をコピー
     all_times = "\n".join(st.session_state.time_only_results)
