@@ -131,12 +131,15 @@ if st.button("計算する"):
 if st.session_state.results:
     st.subheader("📊 計算結果 (hh:mm)")
     
-    # 作業ごとに分けて表示
-    for idx, (result, time_only) in enumerate(zip(st.session_state.results, st.session_state.time_only_results), start=1):
-        st.write(f"**作業{idx}**: 割合 {st.session_state.ratios_list[idx-1]} → {time_only}")
-        
-        # コピー用テキストを表示（選択可能）
-        st.code(time_only, language="text")
+    # 作業を横並びで表示
+    cols = st.columns(len(st.session_state.results))
+    
+    for idx, (result, time_only) in enumerate(zip(st.session_state.results, st.session_state.time_only_results)):
+        with cols[idx]:
+            st.write(f"**作業{idx+1}**")
+            st.write(f"割合 {st.session_state.ratios_list[idx]} → {time_only}")
+            # コピー用テキストを表示（選択可能）
+            st.code(time_only, language="text")
     
     # 全時間をコピー
     all_times = "\n".join(st.session_state.time_only_results)
