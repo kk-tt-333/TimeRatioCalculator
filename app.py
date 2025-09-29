@@ -2,6 +2,22 @@ import streamlit as st
 
 st.title("⏱ 勤務時間割合分配ツール")
 
+# セッション状態の初期化（最初に実行）
+if 'results' not in st.session_state:
+    st.session_state.results = []
+if 'time_only_results' not in st.session_state:
+    st.session_state.time_only_results = []
+if 'time_input_display' not in st.session_state:
+    st.session_state.time_input_display = ""
+if 'ratios_input_display' not in st.session_state:
+    st.session_state.ratios_input_display = "50,30,20"
+
+# 全角数字を半角数字に変換
+def to_halfwidth(text):
+    """全角数字を半角数字に変換"""
+    full_to_half = str.maketrans('０１２３４５６７８９', '0123456789')
+    return text.translate(full_to_half)
+
 # 入力変更時のコールバック関数
 def on_time_input_change():
     """勤務時間入力変更時の処理"""
@@ -36,12 +52,6 @@ time_input = st.text_input(
     on_change=on_time_input_change
 )
 
-# 全角数字を半角数字に変換
-def to_halfwidth(text):
-    """全角数字を半角数字に変換"""
-    full_to_half = str.maketrans('０１２３４５６７８９', '0123456789')
-    return text.translate(full_to_half)
-
 # 4桁の数字を時間と分に変換
 def parse_time_input(input_str):
     # 全角数字を半角に変換
@@ -72,15 +82,6 @@ def to_hhmm(minutes: float) -> str:
     h, m = divmod(round(minutes), 60)
     return f"{h:02d}:{m:02d}"
 
-# セッション状態で結果を保持
-if 'results' not in st.session_state:
-    st.session_state.results = []
-if 'time_only_results' not in st.session_state:
-    st.session_state.time_only_results = []
-if 'time_input_display' not in st.session_state:
-    st.session_state.time_input_display = ""
-if 'ratios_input_display' not in st.session_state:
-    st.session_state.ratios_input_display = "50,30,20"
 
 if st.button("計算する"):
     if total_time > 0 and len(ratios_list) > 0:
