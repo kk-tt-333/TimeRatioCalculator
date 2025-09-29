@@ -40,10 +40,16 @@ export default function TimeRatioCalculator() {
   const copyToClipboard = () => {
     if (results.length === 0) return;
     const text = results
-      .map((res, i) => `割合 ${ratios[i]} → ${res.hhmm} (約 ${res.raw.toFixed(2)} 分)`) 
+      .map((res) => res.hhmm) 
       .join("\n");
     navigator.clipboard.writeText(text).then(() => {
-      alert("結果をコピーしました！");
+      alert("時間をコピーしました！");
+    });
+  };
+
+  const copySingleTime = (time) => {
+    navigator.clipboard.writeText(time).then(() => {
+      alert("時間をコピーしました！");
     });
   };
 
@@ -93,21 +99,34 @@ export default function TimeRatioCalculator() {
               onClick={copyToClipboard}
               className="flex-1 px-4 py-2 bg-gray-600 text-white rounded shadow hover:bg-gray-700"
             >
-              コピー
+              全時間をコピー
             </button>
           )}
         </div>
 
         {results.length > 0 && (
           <div className="mt-6">
-            <h3 className="font-semibold mb-2">📊 計算結果</h3>
-            <ul className="list-disc pl-6">
+            <h3 className="font-semibold mb-4">📊 計算結果</h3>
+            <div className="space-y-3">
               {results.map((res, i) => (
-                <li key={i}>
-                  割合 {ratios[i]} → {res.hhmm} (約 {res.raw.toFixed(2)} 分)
-                </li>
+                <div key={i} className="bg-gray-50 p-4 rounded-lg border">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-gray-700">作業{i + 1}</div>
+                      <div className="text-sm text-gray-600">
+                        割合 {ratios[i]} → {res.hhmm} (約 {res.raw.toFixed(2)} 分)
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => copySingleTime(res.hhmm)}
+                      className="px-3 py-1 bg-blue-500 text-white text-sm rounded shadow hover:bg-blue-600"
+                    >
+                      時間をコピー
+                    </button>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         )}
       </div>
