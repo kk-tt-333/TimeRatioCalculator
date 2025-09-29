@@ -2,12 +2,38 @@ import streamlit as st
 
 st.title("⏱ 勤務時間割合分配ツール")
 
+# 入力変更時のコールバック関数
+def on_time_input_change():
+    """勤務時間入力変更時の処理"""
+    if 'time_input' in st.session_state:
+        # 全角数字を半角に変換
+        converted = to_halfwidth(st.session_state.time_input)
+        # 数字以外の文字を除去
+        converted = ''.join(c for c in converted if c.isdigit())
+        # 4桁まで制限
+        converted = converted[:4]
+        st.session_state.time_input_display = converted
+        st.rerun()
+
+def on_ratios_input_change():
+    """割合入力変更時の処理"""
+    if 'ratios_input' in st.session_state:
+        # 全角数字とカンマを半角に変換
+        converted = to_halfwidth(st.session_state.ratios_input)
+        # 数字、カンマ、小数点以外の文字を除去
+        converted = ''.join(c for c in converted if c.isdigit() or c == ',' or c == '.')
+        st.session_state.ratios_input_display = converted
+        st.rerun()
+
 # 勤務時間入力（4桁の数字で入力）
 time_input = st.text_input(
     "勤務時間 (4桁で入力: 例 0123 = 1時間23分)", 
+    value=st.session_state.time_input_display,
     placeholder="0123",
     max_chars=4,
-    help="半角数字のみ入力可能"
+    help="半角数字のみ入力可能",
+    key="time_input",
+    on_change=on_time_input_change
 )
 
 # 全角数字を半角数字に変換
@@ -27,27 +53,19 @@ def parse_time_input(input_str):
     return 0
 
 # 入力値を半角に変換
-time_input_halfwidth = to_halfwidth(time_input)
-total_time = parse_time_input(time_input_halfwidth)
-
-# 変換結果を表示（デバッグ用）
-if time_input != time_input_halfwidth:
-    st.info(f"入力値を半角に変換しました: {time_input} → {time_input_halfwidth}")
+total_time = parse_time_input(st.session_state.time_input_display)
 
 # 割合入力
 ratios = st.text_area(
     "割合をカンマ区切りで入力（例: 50,30,20）", 
-    "50,30,20",
-    help="半角数字とカンマのみ入力可能"
+    value=st.session_state.ratios_input_display,
+    help="半角数字とカンマのみ入力可能",
+    key="ratios_input",
+    on_change=on_ratios_input_change
 )
 
 # 割合入力を半角に変換して処理
-ratios_halfwidth = to_halfwidth(ratios)
-ratios_list = [float(r.strip()) for r in ratios_halfwidth.split(",") if r.strip().replace(".", "").isdigit()]
-
-# 変換結果を表示（デバッグ用）
-if ratios != ratios_halfwidth:
-    st.info(f"割合入力を半角に変換しました: {ratios} → {ratios_halfwidth}")
+ratios_list = [float(r.strip()) for r in st.session_state.ratios_input_display.split(",") if r.strip().replace(".", "").isdigit()]
 
 # 分を hh:mm に変換
 def to_hhmm(minutes: float) -> str:
@@ -59,6 +77,10 @@ if 'results' not in st.session_state:
     st.session_state.results = []
 if 'time_only_results' not in st.session_state:
     st.session_state.time_only_results = []
+if 'time_input_display' not in st.session_state:
+    st.session_state.time_input_display = ""
+if 'ratios_input_display' not in st.session_state:
+    st.session_state.ratios_input_display = "50,30,20"
 
 if st.button("計算する"):
     if total_time > 0 and len(ratios_list) > 0:
