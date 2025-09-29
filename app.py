@@ -1,4 +1,5 @@
 import streamlit as st
+import pyperclip
 
 st.title("⏱ 勤務時間割合分配ツール")
 
@@ -28,6 +29,12 @@ def to_hhmm(minutes: float) -> str:
     h, m = divmod(round(minutes), 60)
     return f"{h:02d}:{m:02d}"
 
+# セッション状態で結果を保持
+if 'results' not in st.session_state:
+    st.session_state.results = []
+if 'time_only_results' not in st.session_state:
+    st.session_state.time_only_results = []
+
 if st.button("計算する"):
     if total_time > 0 and len(ratios_list) > 0:
         total_ratio = sum(ratios_list)
@@ -40,22 +47,37 @@ if st.button("計算する"):
             results.append(f"作業{idx} → {hhmm}")
             time_only_results.append(hhmm)
         
-        st.subheader("📊 計算結果 (hh:mm)")
-        
-        # 作業ごとに分けて表示
-        for idx, (result, time_only) in enumerate(zip(results, time_only_results), start=1):
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.write(f"**作業{idx}**: 割合 {ratios_list[idx-1]} → {time_only}")
-            with col2:
-                if st.button(f"コピー", key=f"copy_{idx}"):
-                    st.code(time_only, language="text")
-                    st.success(f"作業{idx}の時間をコピーしました！")
-        
-        # 全時間をコピー
-        if st.button("全時間をコピー"):
-            st.code("\n".join(time_only_results), language="text")
-            st.success("全時間をコピーしました！")
+        # セッション状態に保存
+        st.session_state.results = results
+        st.session_state.time_only_results = time_only_results
+        st.session_state.ratios_list = ratios_list
             
     else:
         st.warning("勤務時間と割合を正しく入力してください。")
+
+# 結果表示（セッション状態から）
+if st.session_state.results:
+    st.subheader("📊 計算結果 (hh:mm)")
+    
+    # 作業ごとに分けて表示
+    for idx, (result, time_only) in enumerate(zip(st.session_state.results, st.session_state.time_only_results), start=1):
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write(f"**作業{idx}**: 割合 {st.session_state.ratios_list[idx-1]} → {time_only}")
+        with col2:
+            if st.button(f"コピー", key=f"copy_{idx}"):
+                try:
+                    pyperclip.copy(time_only)
+                    st.success(f"作業{idx}の時間をコピーしました！")
+                except:
+                    st.code(time_only, language="text")
+                    st.info("クリップボードにコピーできませんでした。上記の時間を手動でコピーしてください。")
+    
+    # 全時間をコピー
+    if st.button("全時間をコピー"):
+        try:
+            pyperclip.copy("\n".join(st.session_state.time_only_results))
+            st.success("全時間をコピーしました！")
+        except:
+            st.code("\n".join(st.session_state.time_only_results), language="text")
+            st.info("クリップボードにコピーできませんでした。上記の時間を手動でコピーしてください。")
